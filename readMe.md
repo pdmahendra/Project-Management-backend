@@ -1,1 +1,0 @@
-1. mongo setup done/nodemon setup done./packages install.

@@ -16,3 +16,12 @@ class ApiError extends Error {
 }
 
 export { ApiError }
+
+/*ApiError: user does not exist or wrong email
+    at loginUser (file:///C:/Users/ayurm/OneDrive/Desktop/learningNode/src/controllers/user.controller.js:40:7)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5) {
+  statusCode: 400,
+  data: null,
+  success: false,
+  errors: []
+}*/

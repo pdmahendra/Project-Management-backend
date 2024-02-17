@@ -17,6 +17,12 @@ app.use(express.urlencoded({extended: true,limit: "16kb"}))
 app.use(express.static("uploads"))
 app.use(cookieParser())
 
+//import routes
+import userRoutes from './routes/user.routes.js'
+
+//routes declaration
+app.use('/api/v1/users', userRoutes)
+
 
 export { app }
 /*mongo uri pass ekdm shi hona chahiye.
@@ -31,3 +37,30 @@ export { app }
 
 
  //nodemon - npm start - simple node start but npm run dev - nodemon starts.
+
+ /*{
+  "name": "learningnode",
+  "version": "1.0.0",
+  "description": "A basic Jira Soft Backend Clone",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"
+  },
+  "author": "Pratik Mahendra",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.3",
+    "ejs": "^3.1.9",
+    "express": "^4.18.2",
+    "mongoose": "^8.1.2",
+    "multer": "^1.4.5-lts.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.3"
+  }
+} */
