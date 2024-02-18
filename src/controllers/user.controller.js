@@ -1,12 +1,21 @@
 import User from '../models/user.model.js'
+
 import { ApiError } from '../utils/ApiError.js';
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 
 
 const users = User;
+
 const userRegistration = async (req, res) => {
-    const { fname, lname, email, password } = req.body;
+    const { firstName, lastName, email, password } = req.body;
+
+   // Generate the site link
+//    const siteLink = `localhost:3000/${sitename}.atlassian.net`;
+
+    
+
+
     //validation - email required 
     if (!email) {
         res.json('email required')
@@ -20,17 +29,22 @@ const userRegistration = async (req, res) => {
     }
     //hashing password
     const hashPassword = await bcrypt.hash(password, 10)
+
+    
     //creating user
     const createUser = await users.create({
-        fname,
-        lname,
+        firstName,
+        lastName,
         email,
-        password: hashPassword
+        password: hashPassword,
+        // siteLink 
         // password
     })
-
+    // res.json(`Site link generated: ${siteLink}`);
     return res.status(201).json({ message: "user registered successfully", createUser })
 }
+
+
 
 const loginUser = async (req, res) => {
     const { email, password } = req.body;
@@ -50,8 +64,8 @@ const loginUser = async (req, res) => {
         {
             _id: user._id,
             email: user.email,
-            fname: user.fname,
-            lname: user.lname
+            firstName: user.firstName,
+            lastName: user.lastName
         },
         process.env.ACCESS_TOKEN_SECRET, {
         expiresIn: process.env.ACCESS_TOKEN_EXPIRY

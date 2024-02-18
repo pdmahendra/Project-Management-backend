@@ -1,11 +1,11 @@
 import mongoose, { Schema } from "mongoose";
 
 const userSchema = new Schema({
-  fname: {
+  firstName: {
     type: String,
     required: true,
   },
-  lname: {
+  lastName: {
     type: String,
     required: true,
   },
@@ -17,7 +17,9 @@ const userSchema = new Schema({
   password: {
     type: String,
     required: true,
-  }
+  },
+ 
+
 }, {
   timestamps: { createdAt: "createdAT", updatedAt: "updatedAt" }
 })
@@ -27,3 +29,16 @@ const userSchema = new Schema({
 const userModel = mongoose.model('User', userSchema);
 
 export default userModel;
+
+
+//objects to be added
+// Choose a site name
+// Verify your email address - youc can verify by otp or by sending a link on email to click to verify.
+
+
+
+
+
+
+//site diya to instance create krdo.
+// ek company ka site name hoga us project me agr kisiko add kiya jo us site name k ander hai to vo site name k through access kr skta hai user.
