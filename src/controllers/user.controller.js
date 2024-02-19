@@ -1,6 +1,5 @@
 import User from '../models/user.model.js'
-
-import { ApiError } from '../utils/ApiError.js';
+// import { ApiError } from '../utils/ApiError.js';
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 
@@ -10,54 +9,55 @@ const users = User;
 const userRegistration = async (req, res) => {
     const { firstName, lastName, email, password } = req.body;
 
-   // Generate the site link
-//    const siteLink = `localhost:3000/${sitename}.atlassian.net`;
-
-    
-
-
     //validation - email required 
-    if (!email) {
-        res.json('email required')
-        throw new ApiError(400, "All fields are required")
+    if (!(firstName && lastName && email && password)) {
+        res.status(400).json({message:"All fields are required"})
+        // throw new ApiError(400, "All fields are required")
     }
+  
     //check user already exist
     const existedUser = await users.findOne({ email })
     if (existedUser) {
-        // res.json(`user with ${email} already exist`)
-        throw new ApiError(409, "User with email already exists")
+        res.status(409).json(`user with ${email} already exist`)
+        // throw new ApiError(409, "User with email already exists")
     }
     //hashing password
     const hashPassword = await bcrypt.hash(password, 10)
 
-    
+
     //creating user
     const createUser = await users.create({
         firstName,
         lastName,
         email,
         password: hashPassword,
-        // siteLink 
-        // password
     })
-    // res.json(`Site link generated: ${siteLink}`);
+    if (!createUser) {
+        res.status(500).json({ message: "Something went wrong while user registeration" })
+    }
     return res.status(201).json({ message: "user registered successfully", createUser })
 }
-
 
 
 const loginUser = async (req, res) => {
     const { email, password } = req.body;
 
+    if (!(email && password)) {
+        return res.status(400).json({message:'All fields required'})
+        // throw new ApiError(400, "All fields are required")
+    }
+
     const user = await users.findOne({ email })
     if (!user) {
-        throw new ApiError(400, 'user does not exist or wrong email')
+        return res.status(400).json({message:"User does not exist or email provided by you is wrong"})
+        // throw new ApiError(400, 'user does not exist or wrong email')
     }
     //check pass
     const checkPass = await bcrypt.compare(password, user.password)
 
     if (!checkPass) {
-        throw new ApiError(401, 'invalind user credentials')
+        return res.status(401).json({message:'invalid user credentials'})
+        // throw new ApiError(401, 'invalind user credentials')
     }
 
     const token = jwt.sign(

@@ -19,7 +19,7 @@ const userSchema = new Schema({
     required: true,
   },
  
-
+  // Verify your email address - youc can verify by otp or by sending a link on email to click to verify.
 }, {
   timestamps: { createdAt: "createdAT", updatedAt: "updatedAt" }
 })

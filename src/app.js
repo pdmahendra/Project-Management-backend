@@ -25,7 +25,7 @@ import orgnizationRoutes from './routes/orgnization.routes.js';
 //routes declaration
 app.use('/api/v1/users', userRoutes)
 app.use('/api/v1/users', projectRoutes)
-app.use('/api/v1/users', orgnizationRoutes)
+app.use('/api/v1/orgnization', orgnizationRoutes)
 
 
 
