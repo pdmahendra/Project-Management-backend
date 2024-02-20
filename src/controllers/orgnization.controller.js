@@ -1,4 +1,5 @@
 import Orgnization from "../models/orgnization.model.js";
+import User from '../models/user.model.js'
 
 const organizations = Orgnization;
 
@@ -29,6 +30,14 @@ const createOrganization = async (req, res) => {
         siteName: siteLink,
         initialUser
     })
+
+    // let userRole = req.user.role
+
+    const newRole = await User.findByIdAndUpdate(initialUser, { role: 'admin' });
+    // console.log(newRole)
+    // console.log(req.user.role)
+    // req.user.role = 'admin'
+    // await User.findByIdAndUpdate(initialUser, { role: 'admin' });
 
     if (!createOrg) {
         res.status(500).json({ message: "Something went wrong while creating orgnization instance" })

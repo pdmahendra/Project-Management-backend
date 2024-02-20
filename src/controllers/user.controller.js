@@ -7,7 +7,7 @@ import jwt from 'jsonwebtoken'
 const users = User;
 
 const userRegistration = async (req, res) => {
-    const { firstName, lastName, email, password } = req.body;
+    const { firstName, lastName, email, password, role } = req.body;
 
     //validation - email required 
     if (!(firstName && lastName && email && password)) {
@@ -31,6 +31,7 @@ const userRegistration = async (req, res) => {
         lastName,
         email,
         password: hashPassword,
+        role
     })
     if (!createUser) {
         res.status(500).json({ message: "Something went wrong while user registeration" })
@@ -70,6 +71,7 @@ const loginUser = async (req, res) => {
         process.env.ACCESS_TOKEN_SECRET, {
         expiresIn: process.env.ACCESS_TOKEN_EXPIRY
     })
+
 
     res.status(200).json({ message: 'user logged in', user, token })
 }

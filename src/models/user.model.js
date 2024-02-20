@@ -18,6 +18,11 @@ const userSchema = new Schema({
     type: String,
     required: true,
   },
+  role: {
+    type: String,
+    enum: ['User','admin', 'developer', 'tester', 'scrumMaster', 'projectOwner'],
+    default: 'User' // Default role for new users
+}
  
   // Verify your email address - youc can verify by otp or by sending a link on email to click to verify.
 }, {
