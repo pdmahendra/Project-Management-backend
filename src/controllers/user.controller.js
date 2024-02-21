@@ -9,6 +9,7 @@ const users = User;
 const userRegistration = async (req, res) => {
     const { firstName, lastName, email, password, role } = req.body;
 
+
     //validation - email required 
     if (!(firstName && lastName && email && password)) {
         res.status(400).json({message:"All fields are required"})
@@ -31,7 +32,7 @@ const userRegistration = async (req, res) => {
         lastName,
         email,
         password: hashPassword,
-        role
+        role,
     })
     if (!createUser) {
         res.status(500).json({ message: "Something went wrong while user registeration" })

@@ -31,18 +31,25 @@ const createOrganization = async (req, res) => {
         initialUser
     })
 
+    
     // let userRole = req.user.role
 
-    const newRole = await User.findByIdAndUpdate(initialUser, { role: 'admin' });
-    // console.log(newRole)
-    // console.log(req.user.role)
-    // req.user.role = 'admin'
-    // await User.findByIdAndUpdate(initialUser, { role: 'admin' });
 
-    if (!createOrg) {
-        res.status(500).json({ message: "Something went wrong while creating orgnization instance" })
-    }
-    return res.status(201).json({ message: `Orgnization Instance Created successfully by ${initialUser}`, createOrg })
+    // await User.findByIdAndUpdate(initialUser, { role: 'admin', organizationSiteLink: siteLink });
+    await User.findByIdAndUpdate(initialUser, { 
+        role: 'admin',
+        // organizationSiteLink: siteLink
+        organizationId:createOrg._id
+    });
+// console.log(newRole)
+// console.log(req.user.role)
+// req.user.role = 'admin'
+// await User.findByIdAndUpdate(initialUser, { role: 'admin' });
+
+if (!createOrg) {
+    res.status(500).json({ message: "Something went wrong while creating orgnization instance" })
+}
+return res.status(201).json({ message: `Orgnization Instance Created successfully by ${initialUser}`, createOrg })
 
 };
 
