@@ -15,7 +15,7 @@ const createOrganization = async (req, res) => {
     }
 
     //generate link 
-    const siteLink = `localhost:3000/${siteName}.atlassian.net`;
+    const siteLink = `${siteName}.atlassian.net`;
 
     //check siteName already exist or not if exist throw error already exist.
     const existedLink = await organizations.findOne({ siteName: siteLink })
@@ -31,29 +31,43 @@ const createOrganization = async (req, res) => {
         initialUser
     })
 
-    
+
     // let userRole = req.user.role
 
 
     // await User.findByIdAndUpdate(initialUser, { role: 'admin', organizationSiteLink: siteLink });
-    await User.findByIdAndUpdate(initialUser, { 
+    await User.findByIdAndUpdate(initialUser, {
         role: 'admin',
         // organizationSiteLink: siteLink
-        organizationId:createOrg._id
+        organizationId: createOrg._id
     });
-// console.log(newRole)
-// console.log(req.user.role)
-// req.user.role = 'admin'
-// await User.findByIdAndUpdate(initialUser, { role: 'admin' });
+    // console.log(newRole)
+    // console.log(req.user.role)
+    // req.user.role = 'admin'
+    // await User.findByIdAndUpdate(initialUser, { role: 'admin' });
 
-if (!createOrg) {
-    res.status(500).json({ message: "Something went wrong while creating orgnization instance" })
-}
-return res.status(201).json({ message: `Orgnization Instance Created successfully by ${initialUser}`, createOrg })
+    if (!createOrg) {
+        res.status(500).json({ message: "Something went wrong while creating orgnization instance" })
+    }
+    return res.status(201).json({ message: `Orgnization Instance Created successfully by ${initialUser}`, createOrg })
 
 };
 
+const getOrgnizaitonBySiteLink = async(req, res) => {
+// const {siteName} = req.body;
+const { siteName } = req.params;
+console.log(siteName)
+const findOrg = await organizations.findOne({siteName})
+console.log(findOrg)
+
+if(findOrg){
+    res.json({orgnization : findOrg})
+}else{
+    res.json("something went wrong")
+}
+}
 
 
 
-export { createOrganization }
+
+export { createOrganization,getOrgnizaitonBySiteLink }

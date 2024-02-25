@@ -1,8 +1,11 @@
 import { Router } from "express";
 const router = Router();
 import { verifyJwt } from '../middlewares/auth.middleware.js'
-import { createProject } from '../controllers/project.controller.js'
+import { createNewProject,getProjectsBySiteName } from '../controllers/project.controller.js'
 
-router.route('/create').post(verifyJwt,createProject)
+router.use(verifyJwt)
 
-export default router
+router.route('/:siteName/createNewProject').post( createNewProject)
+router.route('/:siteName/getAllProject').get( getProjectsBySiteName)
+
+export default router;

@@ -20,7 +20,7 @@ const userSchema = new Schema({
   },
   role: {
     type: String,
-    enum: ['User', 'admin', 'developer', 'tester', 'scrumMaster', 'projectOwner'],
+    enum: ['User', 'admin'],
     default: 'User' // Default role for new users
   },
   organizationId: {
