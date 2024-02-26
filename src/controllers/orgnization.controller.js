@@ -53,21 +53,24 @@ const createOrganization = async (req, res) => {
 
 };
 
-const getOrgnizaitonBySiteLink = async(req, res) => {
-// const {siteName} = req.body;
-const { siteName } = req.params;
-console.log(siteName)
-const findOrg = await organizations.findOne({siteName})
-console.log(findOrg)
+const getYourOrgnization = async (req, res) => {
+    // const {siteName} = req.body;
+    // const { siteName } = req.params;
+    // console.log(siteName)
 
-if(findOrg){
-    res.json({orgnization : findOrg})
-}else{
-    res.json("something went wrong")
+    const  userOrgId  = req.user.organizationId
+    // const findOrg = await organizations.findOne( userOrgId )
+    const findOrg = await organizations.findOne( { _id: userOrgId } )
+    console.log(findOrg)
+
+    if (String(userOrgId) == String(findOrg._id)) {
+        return res.json({ orgnization: findOrg })
+    } else {
+        return res.json({ message: `Unauthorized Access` })
+    }
 }
-}
 
 
 
 
-export { createOrganization,getOrgnizaitonBySiteLink }
+export { createOrganization, getYourOrgnization }

@@ -12,19 +12,25 @@ const createNewProject = async (req, res) => {
     const findOrg = await organizations.findOne({ siteName })
     console.log(findOrg)
 
-    const project = await projects.create ({
-        name,
-        description,
-        lead: leadUser,
-        members,
-        organizationId: findOrg._id
-    })
+    const userOrgId = req.user.organizationId;
+    if (String(userOrgId) == String(findOrg._id)) {
+        const project = await projects.create({
+            name,
+            description,
+            lead: leadUser,
+            members,
+            organizationId: findOrg._id
+
+        })
+        return res.status(201).json({ message: `project created by ${leadUser} under ${findOrg._id}`, project: project })
+    } else {
+        return res.json({ message: `Unauthorized Access` })
+    }
     // res.json({ message: `project created by ${leadUser} under ${findOrg._id}`, project: Project })
 
-    return res.status(201).json({ message: `project created by ${leadUser} under ${findOrg._id}`, project: project })
 }
 
-const getProjectsBySiteName = async (req, res) => {
+const getAllYourOrgProjectsBySiteName = async (req, res) => {
     const { siteName } = req.params;
     console.log(siteName)
 
@@ -36,10 +42,16 @@ const getProjectsBySiteName = async (req, res) => {
         return res.status(404).json({ message: 'Organization not found' });
     }
 
-    // Find all projects with the organizationId
-    const allprojects = await projects.find({ organizationId: findOrg._id });
+    const userOrgId = req.user.organizationId;
 
-    return res.json({allourprojects: allprojects });
+    if (String(userOrgId) == String(findOrg._id)) {
+        // Find all projects with the organizationId
+        const allprojects = await projects.find({ organizationId: findOrg._id });
+
+        return res.json({ allourprojects: allprojects });
+    } else {
+        return res.json({ message: `Unauthorized Access` })
+    }
 };
 
-export { createNewProject, getProjectsBySiteName }
+export { createNewProject, getAllYourOrgProjectsBySiteName }
