@@ -8,12 +8,17 @@ const createNewProject = async (req, res) => {
     const { name, description, lead, members, organizationId } = req.body;
     const leadUser = req.user._id;
     const { siteName } = req.params;
-    console.log(siteName)
+    // console.log(siteName)
     const findOrg = await organizations.findOne({ siteName })
-    console.log(findOrg)
+    // console.log(findOrg)
 
     const userOrgId = req.user.organizationId;
+    const findProject = await projects.findOne({name});
+    
     if (String(userOrgId) == String(findOrg._id)) {
+        if(findProject){
+            return res.json({message: 'Project with this name already exists in your instance'})
+        }
         const project = await projects.create({
             name,
             description,
@@ -24,7 +29,7 @@ const createNewProject = async (req, res) => {
         })
         return res.status(201).json({ message: `project created by ${leadUser} under ${findOrg._id}`, project: project })
     } else {
-        return res.json({ message: `Unauthorized Access` })
+        return res.status(401).json({ message: `Unauthorized Access` })
     }
     // res.json({ message: `project created by ${leadUser} under ${findOrg._id}`, project: Project })
 
@@ -50,7 +55,7 @@ const getAllYourOrgProjectsBySiteName = async (req, res) => {
 
         return res.json({ allourprojects: allprojects });
     } else {
-        return res.json({ message: `Unauthorized Access` })
+        return res.status(401).json({ message: `Unauthorized Access` })
     }
 };
 

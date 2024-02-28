@@ -5,70 +5,68 @@ const organizations = Orgnization;
 
 const createOrganization = async (req, res) => {
     const { name, siteName } = req.body;
-    // console.log(siteName)
-    const initialUser = req.user._id
-    // console.log(initialUser)
 
-    //check all fields are not empty
-    if (!name || !siteName) {
-        return res.status(400).json({ message: 'All fields are required' })
+    try {
+        // Validate input
+        if (!(name && siteName)){
+            return res.status(400).json({ message: 'All fields are required' });
+        }
+
+        // Generate siteLink
+        const siteLink = `${siteName}.atlassian.net`;
+
+        // Check if organization with the same name or siteName exists
+        const existingOrganization = await organizations.findOne({ $or: [{ name }, { siteName: siteLink }] });
+        if (existingOrganization) {
+            return res.status(400).json({ message: 'Organization with the same name or siteName already exists' });
+        }
+
+        // Create organization
+        const initialUser = req.user._id;
+        const createOrg = await organizations.create({
+            name,
+            siteName: siteLink,
+            initialUser
+        });
+
+        // Update initial user's role to admin and set organizationId
+        await User.findByIdAndUpdate(initialUser, {
+            role: 'admin',
+            organizationId: createOrg._id
+        });
+
+        if (!createOrg) {
+            return res.status(500).json({ message: 'Something went wrong while creating organization instance' });
+        }
+
+        return res.status(201).json({ message: `Organization Instance Created successfully by ${initialUser}`, createOrg });
+    } catch (error) {
+        console.error('Error creating organization:', error);
+        return res.status(500).json({ message: 'Internal server error' });
     }
-
-    //generate link 
-    const siteLink = `${siteName}.atlassian.net`;
-
-    //check siteName already exist or not if exist throw error already exist.
-    const existedLink = await organizations.findOne({ siteName: siteLink })
-    const existedName = await organizations.findOne({ name })
-    if (existedLink || existedName) {
-        return res.status(400).json({ message: `Orgnization with same instance existed` })
-    }
-
-    //all well create org instance do every task of project of this org in its sitelink url.
-    const createOrg = await organizations.create({
-        name,
-        siteName: siteLink,
-        initialUser
-    })
-
-
-    // let userRole = req.user.role
-
-
-    // await User.findByIdAndUpdate(initialUser, { role: 'admin', organizationSiteLink: siteLink });
-    await User.findByIdAndUpdate(initialUser, {
-        role: 'admin',
-        // organizationSiteLink: siteLink
-        organizationId: createOrg._id
-    });
-    // console.log(newRole)
-    // console.log(req.user.role)
-    // req.user.role = 'admin'
-    // await User.findByIdAndUpdate(initialUser, { role: 'admin' });
-
-    if (!createOrg) {
-        res.status(500).json({ message: "Something went wrong while creating orgnization instance" })
-    }
-    return res.status(201).json({ message: `Orgnization Instance Created successfully by ${initialUser}`, createOrg })
-
 };
 
+
 const getYourOrgnization = async (req, res) => {
-    // const {siteName} = req.body;
-    // const { siteName } = req.params;
-    // console.log(siteName)
+    try {
+        const userOrgId = req.user.organizationId;
+        const findOrg = await organizations.findOne({ _id: userOrgId });
 
-    const  userOrgId  = req.user.organizationId
-    // const findOrg = await organizations.findOne( userOrgId )
-    const findOrg = await organizations.findOne( { _id: userOrgId } )
-    console.log(findOrg)
+        if (!findOrg) {
+            return res.status(404).json({ message: 'Organization not found' });
+        }
 
-    if (String(userOrgId) == String(findOrg._id)) {
-        return res.json({ orgnization: findOrg })
-    } else {
-        return res.json({ message: `Unauthorized Access` })
+        if (String(userOrgId) === String(findOrg._id)) {
+            return res.status(200).json({ organization: findOrg });
+        } else {
+            return res.status(401).json({ message: 'Unauthorized Access' });
+        }
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Internal server error' });
     }
-}
+};
+
 
 
 
