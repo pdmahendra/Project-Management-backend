@@ -1,26 +1,29 @@
 import User from '../models/user.model.js'
 import jwt from 'jsonwebtoken'
-import { ApiError } from '../utils/ApiError.js';
 
 export const verifyJwt = async (req, res, next) => {
     try {
         const token = req.header('Authorization').split("Bearer ")[1];
-        // console.log(token);
         if (!token) {
-            throw new ApiError(401, "Unauthorized request")
+            return res.status(401).json({ message: "Unauthorized request" });
         }
-        const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
+        const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
 
-        const user = await User.findById(decodedToken?._id)
+        const user = await User.findById(decodedToken?._id);
 
         if (!user) {
-            throw new ApiError(401, "Invalid Access Token")
+            return res.status(401).json({ message: "Invalid Access Token" });
         }
 
         req.user = user;
-        next()
+        next();
     } catch (error) {
-        throw new ApiError(401, error?.message || "Invalid access token")
+        if (error.message === 'jwt expired') {
+            return res.status(401).json({ message: "Session expired, please login again to continue" });
+        } else {
+            return res.status(401).json({ message: "Invalid access token" });
+        }
     }
 }
+
 

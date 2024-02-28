@@ -5,58 +5,62 @@ const projects = Project;
 const organizations = Orgnization;
 
 const createNewProject = async (req, res) => {
-    const { name, description, lead, members, organizationId } = req.body;
+    const { name, description, lead, members } = req.body;
     const leadUser = req.user._id;
     const { siteName } = req.params;
-    // console.log(siteName)
-    const findOrg = await organizations.findOne({ siteName })
-    // console.log(findOrg)
 
-    const userOrgId = req.user.organizationId;
-    const findProject = await projects.findOne({name});
-    
-    if (String(userOrgId) == String(findOrg._id)) {
-        if(findProject){
-            return res.json({message: 'Project with this name already exists in your instance'})
+    try {
+        const organization = await organizations.findOne({ siteName });
+
+        if (!organization) {
+            return res.status(401).json({ message: 'Unauthorized Access' });
         }
+
+        const existingProject = await projects.findOne({ name, organizationId: organization._id });
+
+        if (existingProject) {
+            return res.status(400).json({ message: 'Project with this name already exists in your instance' });
+        }
+
         const project = await projects.create({
             name,
             description,
             lead: leadUser,
             members,
-            organizationId: findOrg._id
+            organizationId: organization._id
+        });
 
-        })
-        return res.status(201).json({ message: `project created by ${leadUser} under ${findOrg._id}`, project: project })
-    } else {
-        return res.status(401).json({ message: `Unauthorized Access` })
+        return res.status(201).json({ message: `Project created by ${leadUser} under ${organization._id}`, project });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Something went wrong while creating the project' });
     }
-    // res.json({ message: `project created by ${leadUser} under ${findOrg._id}`, project: Project })
-
-}
+};
 
 const getAllYourOrgProjectsBySiteName = async (req, res) => {
     const { siteName } = req.params;
-    console.log(siteName)
 
-    // Find the organization by siteName
-    const findOrg = await organizations.findOne({ siteName });
-    console.log(findOrg)
+    try {
+        const organization = await organizations.findOne({ siteName });
 
-    if (!findOrg) {
-        return res.status(404).json({ message: 'Organization not found' });
-    }
+        if (!organization) {
+            return res.status(404).json({ message: 'Organization not found' });
+        }
 
-    const userOrgId = req.user.organizationId;
+        const userOrgId = req.user.organizationId;
 
-    if (String(userOrgId) == String(findOrg._id)) {
-        // Find all projects with the organizationId
-        const allprojects = await projects.find({ organizationId: findOrg._id });
+        if (String(userOrgId) !== String(organization._id)) {
+            return res.status(401).json({ message: 'Unauthorized Access: You are not authorized to access this organization.' });
+        }
 
-        return res.json({ allourprojects: allprojects });
-    } else {
-        return res.status(401).json({ message: `Unauthorized Access` })
+        const allProjects = await projects.find({ organizationId: organization._id });
+
+        return res.status(200).json({ message: 'Successfully retrieved all projects for your organization.', allProjects });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Internal server error. Please try again later.' });
     }
 };
+
 
 export { createNewProject, getAllYourOrgProjectsBySiteName }
