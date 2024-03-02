@@ -1,5 +1,5 @@
 import User from '../models/user.model.js'
-// import { ApiError } from '../utils/ApiError.js';
+import { ApiError } from '../utils/ApiError.js';
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 
@@ -12,13 +12,13 @@ const userRegistration = async (req, res) => {
     try {
         // Validation - email required
         if (!(firstName && lastName && email && password)) {
-            return res.status(400).json({ message: "All fields are required" });
+            throw new ApiError(400, "All fields are required")
         }
 
         // Check if user already exists
         const existingUser = await users.findOne({ email });
         if (existingUser) {
-            return res.status(409).json({ message: `User with email ${email} already exists` });
+            throw new ApiError(409, `User with email ${email} already exists`)
         }
 
         // Hashing password
@@ -34,14 +34,17 @@ const userRegistration = async (req, res) => {
         });
 
         if (!createUser) {
-            throw new Error("Something went wrong while user registration");
+            throw new ApiError(500, "User Registration failed");
         }
 
         return res.status(201).json({ message: "User registered successfully", createUser });
     } catch (error) {
-        // Log the error to a file or a logging service
-        console.error(error);
-        return res.status(500).json({ message: "Internal server error" });
+        if (error instanceof ApiError) {
+            return res.status(error.statusCode).json({ message: error.message, errors: error.errors });
+        } else {
+            console.error(error);
+            return res.status(500).json({ message: "Internal server error" });
+        }
     }
 };
 
@@ -50,17 +53,17 @@ const loginUser = async (req, res) => {
 
     try {
         if (!(email && password)) {
-            return res.status(400).json({ message: 'All fields required' });
+            throw new ApiError(400, "All fields required")
         }
 
         const user = await users.findOne({ email });
         if (!user) {
-            return res.status(400).json({ message: 'User does not exist or the email provided is incorrect' });
+            throw new ApiError(400, "User with this Email does not exist")
         }
 
         const checkPass = await bcrypt.compare(password, user.password);
         if (!checkPass) {
-            return res.status(401).json({ message: 'Invalid user credentials' });
+            throw new ApiError(401, "Invalid user credentials")
         }
 
         const token = jwt.sign(
@@ -76,28 +79,19 @@ const loginUser = async (req, res) => {
             }
         );
 
-        return res.status(200).json({ message: 'User logged in', user, token });
+        return res.status(200).json({ message: 'User Successfully logged in', user, token });
     } catch (error) {
-        // Log the error to a file or a logging service
+      if(error instanceof ApiError){
+        return res.status(error.statusCode).json({ message: error.message, errors: error.errors });
+    } else {
         console.error(error);
-        return res.status(500).json({ message: 'Internal server error' });
+        return res.status(500).json({ message: "Internal server error" });
+      }
     }
 };
 
 
 
 
-
-
-// const getAllUsers = async (req, res) => {
-//     const allUsers = await users.find()
-//     if (allUsers) {
-//         res.json({ allUser: allUsers })
-//     }
-//     //    else{
-//     //     res.json({message:"you have no access, Please register yourself first"})
-//     //    }
-
-// };
 export { userRegistration, loginUser }
 

@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
-const dbName = 'pratikkadb'
+// const dbName = 'pratikkadb'
+import {dbName} from '../constant.js'
 
 const connectDBFunc = async() => {
 try {

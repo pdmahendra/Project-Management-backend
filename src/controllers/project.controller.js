@@ -1,27 +1,36 @@
 import Project from '../models/project.model.js';
-import Orgnization from '../models/orgnization.model.js'
+import Organization from '../models/orgnization.model.js'
+import { ApiError } from '../utils/ApiError.js';
 
 const projects = Project;
-const organizations = Orgnization;
+const organizations = Organization;
 
 const createNewProject = async (req, res) => {
-    const { name, description, lead, members } = req.body;
-    const leadUser = req.user._id;
+    const { name, description, lead, members } = req.body; //name must,  Other details can be added later (functionality is pending).
+    const leadUser = req.user._id; //leadUser is the admin right now as he is creating project. this functionality is temporary.
     const { siteName } = req.params;
 
     try {
-        const organization = await organizations.findOne({ siteName });
+        if (!name) {
+            throw new ApiError(400, "Project name is required");
+        }
 
+        const organization = await organizations.findOne({ siteName });
         if (!organization) {
-            return res.status(401).json({ message: 'Unauthorized Access' });
+            throw new ApiError(404, "Organization not found")
+        }
+
+        const userOrgId = req.user.organizationId;
+        if(String(userOrgId)!==String(organization._id)){
+            throw new ApiError(401, "Unauthorized Access")
         }
 
         const existingProject = await projects.findOne({ name, organizationId: organization._id });
-
         if (existingProject) {
-            return res.status(400).json({ message: 'Project with this name already exists in your instance' });
+            throw new ApiError(400, "Project with this name already exists in your organization")
         }
 
+        //only initial user can make project.
         const project = await projects.create({
             name,
             description,
@@ -29,11 +38,15 @@ const createNewProject = async (req, res) => {
             members,
             organizationId: organization._id
         });
-
         return res.status(201).json({ message: `Project created by ${leadUser} under ${organization._id}`, project });
+
     } catch (error) {
-        console.error(error);
-        return res.status(500).json({ message: 'Something went wrong while creating the project' });
+        if (error instanceof ApiError) {
+            return res.status(error.statusCode).json({ message: error.message, errors: error.error })
+        } else {
+            console.error(error);
+            return res.status(500).json({ message: 'Something went wrong while creating the project' });
+        }
     }
 };
 
@@ -42,23 +55,25 @@ const getAllYourOrgProjectsBySiteName = async (req, res) => {
 
     try {
         const organization = await organizations.findOne({ siteName });
-
         if (!organization) {
-            return res.status(404).json({ message: 'Organization not found' });
+            throw new ApiError(404, "Organization not found")
         }
 
         const userOrgId = req.user.organizationId;
-
         if (String(userOrgId) !== String(organization._id)) {
-            return res.status(401).json({ message: 'Unauthorized Access: You are not authorized to access this organization.' });
+            throw new ApiError(401, "Unauthorized Access.")
         }
 
         const allProjects = await projects.find({ organizationId: organization._id });
 
         return res.status(200).json({ message: 'Successfully retrieved all projects for your organization.', allProjects });
     } catch (error) {
-        console.error(error);
-        return res.status(500).json({ message: 'Internal server error. Please try again later.' });
+        if (error instanceof ApiError) {
+            return res.status(error.statusCode).json({message: error.message, errors: error.errors})
+        } else {
+            console.error(error);
+            return res.status(500).json({ message: 'Internal server error. Please try again later.' });
+        }
     }
 };
 

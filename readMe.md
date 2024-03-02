@@ -19,7 +19,7 @@ Login: /api/v1/users/login - Allows users to log in to their account.
 Logout: /api/logout - Allows users to log out of their account.
 Profile: /api/profile - Allows users to view and update their profile information.
 
-- Orgnanization:
+- Organization:
 Create Organization Instance: /api/v1/orgnization/createInstance - Allows registered users to create an organization Instance.
 Get Organization: /api/v1/orgnization/getOrgnization - Allows registered users to get organization Instance.
 
