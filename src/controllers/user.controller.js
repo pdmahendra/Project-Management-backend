@@ -81,17 +81,49 @@ const loginUser = async (req, res) => {
 
         return res.status(200).json({ message: 'User Successfully logged in', user, token });
     } catch (error) {
-      if(error instanceof ApiError){
-        return res.status(error.statusCode).json({ message: error.message, errors: error.errors });
-    } else {
-        console.error(error);
-        return res.status(500).json({ message: "Internal server error" });
-      }
+        if (error instanceof ApiError) {
+            return res.status(error.statusCode).json({ message: error.message, errors: error.errors });
+        } else {
+            console.error(error);
+            return res.status(500).json({ message: "Internal server error" });
+        }
+    }
+};
+
+const updatePassword = async (req, res) => {
+    const { newPassword } = req.body;
+
+    if (!newPassword) {
+        throw new ApiError(400, "New password is required");
+    }
+
+    try {
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        const updatedUser = await users.findByIdAndUpdate(req.user?._id,
+            {
+                password: hashedPassword
+            },
+            { new: true });
+
+        if (!updatedUser) {
+            throw new ApiError(404, "User not found");
+        }
+
+        return res.status(200).json({ message: "Password has been updated", updatedUser });
+    } catch (error) {
+        if (error instanceof ApiError) {
+            return res.status(error.statusCode).json({ message: error.message, errors: error.errors });
+        } else {
+            console.error(error);
+            return res.status(500).json({ message: "Something went wrong" });
+        }
     }
 };
 
 
 
 
-export { userRegistration, loginUser }
+
+export { userRegistration, loginUser, updatePassword }
 
