@@ -90,7 +90,7 @@ const loginUser = async (req, res) => {
     }
 };
 
-const updatePassword = async (req, res) => {
+const updateUserPassword = async (req, res) => {
     const { newPassword } = req.body;
 
     if (!newPassword) {
@@ -100,17 +100,49 @@ const updatePassword = async (req, res) => {
     try {
         const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-        const updatedUser = await users.findByIdAndUpdate(req.user?._id,
+        const updatedUserPassword = await users.findByIdAndUpdate(req.user?._id,
             {
                 password: hashedPassword
             },
             { new: true });
 
+        if (!updatedUserPassword) {
+            throw new ApiError(404, "User not found");
+        }
+
+        return res.status(200).json({ message: "Password has been updated", updatedUserPassword });
+    } catch (error) {
+        if (error instanceof ApiError) {
+            return res.status(error.statusCode).json({ message: error.message, errors: error.errors });
+        } else {
+            console.error(error);
+            return res.status(500).json({ message: "Something went wrong" });
+        }
+    }
+};
+
+const updateUser = async (req, res) => {
+    const { firstName, lastName, email, role } = req.body;
+
+    try {
+        const existingUser = await users.findOne({ email });
+        if (existingUser) {
+            throw new ApiError(409, `User with email ${email} already exists`);
+        }
+
+        const updatedUser = await users.findByIdAndUpdate(req.user?._id,
+            {
+                firstName,
+                lastName,
+                email,
+                role
+            }, { new: true });
+
         if (!updatedUser) {
             throw new ApiError(404, "User not found");
         }
 
-        return res.status(200).json({ message: "Password has been updated", updatedUser });
+        return res.status(200).json({ message: "User has been updated", updatedUser });
     } catch (error) {
         if (error instanceof ApiError) {
             return res.status(error.statusCode).json({ message: error.message, errors: error.errors });
@@ -125,5 +157,16 @@ const updatePassword = async (req, res) => {
 
 
 
-export { userRegistration, loginUser, updatePassword }
+
+
+
+
+
+
+export {
+    userRegistration,
+    loginUser,
+    updateUserPassword,
+    updateUser
+}
 

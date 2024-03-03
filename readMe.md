@@ -15,6 +15,8 @@ This is a backend project for a Jira-like application, focusing on organization 
 - User Management:
 Register User: /api/v1/users/register - Allows users to register for an account.
 Login: /api/v1/users/login - Allows users to log in to their account.
+Update Password: /api/v1/users/updatePassword - Allows users to update their password.
+Update User Information: /api/v1/users/updateUser - Allows users to update their other information.
 /not done yet
 Logout: /api/logout - Allows users to log out of their account.
 Profile: /api/profile - Allows users to view and update their profile information.
