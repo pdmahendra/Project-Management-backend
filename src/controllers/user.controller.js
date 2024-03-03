@@ -78,6 +78,7 @@ const loginUser = async (req, res) => {
                 expiresIn: process.env.ACCESS_TOKEN_EXPIRY
             }
         );
+        res.cookie('token', token, { httpOnly: true });
 
         return res.status(200).json({ message: 'User Successfully logged in', user, token });
     } catch (error) {
@@ -153,6 +154,37 @@ const updateUser = async (req, res) => {
     }
 };
 
+// const logoutUser = async (req, res) => {
+
+//     // Clear the JWT token cookie
+//     res.clearCookie('token');
+//     req.headers.authorization = '';
+
+//     // Update the user document or blacklist to indicate that the user is logged out
+//     // For example, you could set req.user.isLoggedOut = true
+
+//     return res.status(200).json({ message: 'User logged out' });
+// };
+
+const deleteUser = async (req, res) => {
+    try {
+        const user = await users.findByIdAndDelete(req.user?._id);
+        if (!user) {
+            throw new ApiError(404, "User not found");
+        }
+        return res.status(200).json({ message: "User successfully deleted", user });
+    } catch (error) {
+        if (error instanceof ApiError) {
+            return res.status(error.statusCode).json({ message: error.message, errors: error.errors });
+        } else {
+            console.error(error);
+            return res.status(500).json({ message: "Something went wrong" });
+        }
+    }
+};
+
+
+
 
 
 
@@ -167,6 +199,7 @@ export {
     userRegistration,
     loginUser,
     updateUserPassword,
-    updateUser
+    updateUser,
+    deleteUser
 }
 
