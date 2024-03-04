@@ -20,8 +20,7 @@ const createNewProject = async (req, res) => {
             throw new ApiError(404, "Organization not found")
         }
 
-        const userOrgId = req.user.organizationId;
-        if(String(userOrgId)!==String(organization._id)){
+        if (String(req.user.organizationId) !== String(organization._id)) {
             throw new ApiError(401, "Unauthorized Access")
         }
 
@@ -38,6 +37,7 @@ const createNewProject = async (req, res) => {
             members,
             organizationId: organization._id
         });
+        
         return res.status(201).json({ message: `Project created by ${leadUser} under ${organization._id}`, project });
 
     } catch (error) {
@@ -45,7 +45,7 @@ const createNewProject = async (req, res) => {
             return res.status(error.statusCode).json({ message: error.message, errors: error.error })
         } else {
             console.error(error);
-            return res.status(500).json({ message: 'Something went wrong while creating the project' });
+            return res.status(500).json({ message: "Internal server error. Please try again later." });
         }
     }
 };
@@ -59,23 +59,51 @@ const getAllYourOrgProjectsBySiteName = async (req, res) => {
             throw new ApiError(404, "Organization not found")
         }
 
-        const userOrgId = req.user.organizationId;
-        if (String(userOrgId) !== String(organization._id)) {
+        if (String(req.user.organizationId) !== String(organization._id)) {
             throw new ApiError(401, "Unauthorized Access.")
         }
 
         const allProjects = await projects.find({ organizationId: organization._id });
 
-        return res.status(200).json({ message: 'Successfully retrieved all projects for your organization.', allProjects });
+        return res.status(200).json({ message: "Successfully retrieved all projects for your organization.", allProjects });
     } catch (error) {
         if (error instanceof ApiError) {
-            return res.status(error.statusCode).json({message: error.message, errors: error.errors})
+            return res.status(error.statusCode).json({ message: error.message, errors: error.errors })
         } else {
             console.error(error);
-            return res.status(500).json({ message: 'Internal server error. Please try again later.' });
+            return res.status(500).json({ message: "Internal server error. Please try again later." });
         }
     }
 };
 
+const getSingleProject = async (req, res) => {
+    const { siteName, id } = req.params;
 
-export { createNewProject, getAllYourOrgProjectsBySiteName }
+    try {
+        const organization = await organizations.findOne({ siteName });
+        if (!organization) {
+            throw new ApiError(404, "Organization not found")
+        }
+
+        const project = await projects.findById(id)
+        if (!project) {
+            throw new ApiError(404, "Project not found")
+        }
+
+        if (String(req.user.organizationId) !== String(organization._id) || String(project.organizationId) !== String(organization._id)) {
+            throw new ApiError(401, "Unauthorized Access.")
+        }
+
+        return res.status(200).json({ message: "Successfully retrieved project", project })
+    } catch (error) {
+        if (error instanceof ApiError) {
+            return res.status(error.statusCode).json({ message: error.message, errors: error.errors })
+        } else {
+            console.error(error)
+            return res.status(500).json({ message: "Internal server error. Please try again later." });
+        }
+    }
+}
+
+
+export { createNewProject, getAllYourOrgProjectsBySiteName, getSingleProject }
