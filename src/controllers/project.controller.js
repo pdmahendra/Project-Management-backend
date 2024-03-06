@@ -159,4 +159,24 @@ const updateProject = async (req, res) => {
 
 };
 
-export { createNewProject, getAllYourOrgProjectsBySiteName, getSingleProject, updateProject }
+const deleteProject = async (req, res) => {
+    const { siteName, id } = req.params;
+
+    const organization = await organizations.findOne({ siteName })
+    if (!organization) {
+        return res.json({ message: "organization not found" })
+    }
+
+    if (String(req.user.organizationId) !== String(organization._id)) {
+        return res.status(401).json({ message: "Unauthorized Access" });
+    }
+
+    const project = await projects.findOneAndDelete({ _id: id, organizationId: organization._id });
+    if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+    }
+
+    return res.json({ message: "project deleted successfully", project })
+}
+
+export { createNewProject, getAllYourOrgProjectsBySiteName, getSingleProject, updateProject, deleteProject }
