@@ -15,33 +15,32 @@ const createOrganization = async (req, res) => {
         // Generate siteLink
         const siteLink = `${siteName}.atlassian.net`;
 
-        // Check if organization with the same name or siteName exists
-        const existingOrganization = await organizations.findOne({ $or: [{ name }, { siteName: siteLink }] });
+        const existingOrganization = await organizations.findOne({ name: name, siteName: siteLink });
         if (existingOrganization) {
             throw new ApiError(400,
                 "An organization with the same name or siteName already exists. Please choose a different name or siteName."
             )
         }
 
-        // Create organization
-        const initialUser = req.user._id;
         const createOrg = await organizations.create({
             name,
             siteName: siteLink,
-            initialUser
+            initialUser: req.user._id
         });
 
-        // Update initial user's role to admin and set organizationId
-        await User.findByIdAndUpdate(initialUser, {
+        const updateRole = await User.findByIdAndUpdate(req.user?._id, {
             role: 'admin',
-            organizationId: createOrg._id
         });
+
+        if (!updateRole) {
+            throw new ApiError(500, "An error occurred while updating user role.")
+        }
 
         if (!createOrg) {
             throw new ApiError(500, "An error occurred while creating the organization instance.")
         }
 
-        return res.status(201).json({ message: `Organization Instance Created successfully by ${initialUser}`, createOrg });
+        return res.status(201).json({ message: `Organization Instance Created successfully by ${req.user._id}`, createOrg });
     } catch (error) {
         if (error instanceof ApiError) {
             return res.status(error.statusCode).json({ message: error.message, errors: error.errors })
@@ -52,29 +51,29 @@ const createOrganization = async (req, res) => {
     }
 };
 
-const getYourOrganization = async (req, res) => {
+const getYourOrganizationById = async (req, res) => {
+    const { id } = req.params
     try {
-        const userOrgId = req.user.organizationId;
-        const organization = await organizations.findOne({ _id: userOrgId });
+        const organization = await organizations.findOne({ _id: id });
 
         if (!organization) {
             throw new ApiError(404, "Organization not found")
         }
 
-        if (String(userOrgId) !== String(organization._id)) {
+        if (String(req.user?._id) !== String(organization.initialUser)) {
             throw new ApiError(401, "Unauthorized Access")
         }
         return res.status(200).json({ organization: organization });
 
     } catch (error) {
-       if(error instanceof ApiError){
-        return res.status(error.statusCode).json({message:error.message, error: error.errors})
-       }else{
-        console.error(error);
-        return res.status(500).json({ message: "Internal server error" });
-       }
+        if (error instanceof ApiError) {
+            return res.status(error.statusCode).json({ message: error.message, error: error.errors })
+        } else {
+            console.error(error);
+            return res.status(500).json({ message: "Internal server error" });
+        }
     }
 };
 
 
-export { createOrganization, getYourOrganization }
+export { createOrganization, getYourOrganizationById }

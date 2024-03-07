@@ -22,13 +22,7 @@ const userSchema = new Schema({
     type: String,
     enum: ['User', 'admin'],
     default: 'User' // Default role for new users
-  },
-  organizationId: {
-    type: Schema.Types.ObjectId,
-    ref: 'Orgnization'
   }
-
-
   // Verify your email address - youc can verify by otp or by sending a link on email to click to verify.
 }, {
   timestamps: { createdAt: "createdAT", updatedAt: "updatedAt" }
