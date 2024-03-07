@@ -91,8 +91,19 @@ const getSingleProject = async (req, res) => {
             throw new ApiError(404, "Project not found")
         }
 
-        if (String(req.user.organizationId) !== String(organization._id) || String(project.organizationId) !== String(organization._id)) {
-            throw new ApiError(401, "Unauthorized Access.")
+        //member can aaccess Single project
+        const members = project.members
+        let isMember = false;
+        for (let member of members){
+            if(String(member.user) === String(req.user._id)){
+                console.log("member user and req user id matches")
+                isMember = true;
+                break;
+            }
+        }
+
+        if (!isMember && String(req.user.organizationId) !== String(organization._id) || String(project.organizationId) !== String(organization._id)) {
+            throw new ApiError(401, "Unauthorized Access. checking here")
         }
 
         return res.status(200).json({ message: "Successfully retrieved project", project })
