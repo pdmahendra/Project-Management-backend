@@ -21,7 +21,7 @@ const createNewProject = async (req, res) => {
             throw new ApiError(404, "Organization not found")
         }
 
-        if (String(req.user.organizationId) !== String(organization._id)) {
+        if (String(leadUser) !== String(organization.initialUser)) {
             throw new ApiError(401, "Unauthorized Access")
         }
 
@@ -60,7 +60,7 @@ const getAllYourOrgProjectsBySiteName = async (req, res) => {
             throw new ApiError(404, "Organization not found")
         }
 
-        if (String(req.user.organizationId) !== String(organization._id)) {
+        if (String(req.user._id) !== String(organization.initialUser)) {
             throw new ApiError(401, "Unauthorized Access.")
         }
 
@@ -91,18 +91,18 @@ const getSingleProject = async (req, res) => {
             throw new ApiError(404, "Project not found")
         }
 
-        //member can aaccess Single project
+        //member can access Single project
         const members = project.members
         let isMember = false;
         for (let member of members){
             if(String(member.user) === String(req.user._id)){
-                console.log("member user and req user id matches")
+                console.log("member user and req user id matches") 
                 isMember = true;
                 break;
             }
         }
 
-        if (!isMember && String(req.user.organizationId) !== String(organization._id) || String(project.organizationId) !== String(organization._id)) {
+        if (!isMember && String(req.user._id) !== String(organization.initialUser) || String(project.organizationId) !== String(organization._id)) {
             throw new ApiError(401, "Unauthorized Access. checking here")
         }
 
@@ -132,7 +132,7 @@ const updateProject = async (req, res) => {
             throw new ApiError(404, "Lead user not found");
         }
 
-        if (String(req.user.organizationId) !== String(organization._id)) {
+        if (String(req.user._id) !== String(organization.initialUser)) { 
             throw new ApiError(401, "Unauthorized Access.");
         }
 
@@ -143,8 +143,9 @@ const updateProject = async (req, res) => {
 
         for (let member of members) {
             let findUser = await User.findById(member.user);
+            console.log(findUser)
             if (!findUser) {
-                throw new ApiError(404, `User with ID ${member.user} not found`);
+                throw new ApiError(404, `member not found`);
             }
             // role validation is pending.
         }
@@ -178,7 +179,7 @@ const deleteProject = async (req, res) => {
         return res.json({ message: "organization not found" })
     }
 
-    if (String(req.user.organizationId) !== String(organization._id)) {
+    if (String(req.user._id) !== String(organization.initialUser)) {
         return res.status(401).json({ message: "Unauthorized Access" });
     }
 

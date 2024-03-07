@@ -22,7 +22,7 @@ This is a backend project for a Jira-like application, focusing on organization 
 
 ## Organization
 - POST /api/v1/orgnization/createInstance: Allows registered users to create an organization instance.
-- GET /api/v1/orgnization/getOrgnization: Allows registered users to get organization instances.
+- GET /api/v1/orgnization/getOrgnization/:id: Allows registered users to get organization instances by id.
 
 ## Project Management
 - POST /:siteName/projects/createNewProject: Allows users to create a new project in a specific organization instance.
