@@ -94,9 +94,9 @@ const getSingleProject = async (req, res) => {
         //member can access Single project
         const members = project.members
         let isMember = false;
-        for (let member of members){
-            if(String(member.user) === String(req.user._id)){
-                console.log("member user and req user id matches") 
+        for (let member of members) {
+            if (String(member.user) === String(req.user._id)) {
+                console.log("member user and req user id matches")
                 isMember = true;
                 break;
             }
@@ -127,12 +127,7 @@ const updateProject = async (req, res) => {
             throw new ApiError(404, "Organization not found");
         }
 
-        const leadUserExists = await User.findById(lead);
-        if (!leadUserExists) {
-            throw new ApiError(404, "Lead user not found");
-        }
-
-        if (String(req.user._id) !== String(organization.initialUser)) { 
+        if (String(req.user._id) !== String(organization.initialUser)) {
             throw new ApiError(401, "Unauthorized Access.");
         }
 
@@ -141,13 +136,21 @@ const updateProject = async (req, res) => {
             throw new ApiError(404, "Project not found");
         }
 
-        for (let member of members) {
-            let findUser = await User.findById(member.user);
-            console.log(findUser)
-            if (!findUser) {
-                throw new ApiError(404, `member not found`);
+        if (lead) {
+            const leadUserExists = await User.findById(lead)
+            if (!leadUserExists) {
+                throw new ApiError(404, "Lead user not found");
             }
-            // role validation is pending.
+        }
+
+        if (members) {
+            for (let member of members) {
+                let findUser = await User.findById(member.user);
+                if (!findUser) {
+                    throw new ApiError(404, `member not found`);
+                }
+                // role validation is pending.
+            }
         }
 
         const updatedProject = await projects.findByIdAndUpdate(id,
