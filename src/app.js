@@ -12,8 +12,8 @@ app.use(cors({
 }));
 
 //middleware config [jate hue in sb se milte jana/bich ki checking]
-app.use(express.json({limit: "16kb"}))
-app.use(express.urlencoded({extended: true,limit: "16kb"}))
+app.use(express.json({ limit: "16kb" }))
+app.use(express.urlencoded({ extended: true, limit: "16kb" }))
 app.use(express.static("uploads"))
 app.use(cookieParser())
 
@@ -22,12 +22,17 @@ import userRoutes from './routes/user.routes.js'
 import organizationRoutes from './routes/organization.routes.js';
 
 import projectRoutes from './routes/project.routes.js'
+import epicRoutes from './routes/epic.routes.js'
 
 //routes declaration
 app.use('/api/v1/users', userRoutes)
 app.use('/api/v1/organization', organizationRoutes)
 
-app.use('/', projectRoutes)
+app.use('/', projectRoutes,)
+app.use('/', epicRoutes)
+
+
+
 
 
 
@@ -39,4 +44,3 @@ app.use('/', projectRoutes)
 export { app }
 
 
- 
