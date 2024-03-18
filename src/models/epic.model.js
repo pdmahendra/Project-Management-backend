@@ -17,7 +17,7 @@ const epicSchema = new Schema({
     priority: {
         type: String,
         enum: ['Highest', 'High', 'Medium', 'Low', 'Lowest'],
-        default: roles.client
+        default: 'Highest'
     },
     assignee: {
         type: Schema.Types.ObjectId,
