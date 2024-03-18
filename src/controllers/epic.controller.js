@@ -56,4 +56,42 @@ const createEpic = async (req, res) => {
     }
 };
 
-export { createEpic }
+// siteName/projectid/epic/epicId
+const getEpicById = async (req, res) => {
+    const { siteName, id, epicId } = req.params
+
+    // console.log(siteName)
+    // console.log(id)
+    // console.log(epicId)
+    try {
+        const organization = await Organization.findOne({ siteName });
+        if (!organization) {
+            return res.status(404).json("Organization not found")
+        }
+        const findProject = await Project.findOne({ _id: id });
+        if (!findProject) {
+            return res.status(404).json("Project not found")
+        }
+
+        const epic = await Epic.findOne({ _id: epicId });
+        if (!epic) {
+            throw new ApiError(400, "Epic with this id not exists in your project")
+        }
+
+        //initialuser is org admin.
+        if (String(req.user._id) !== String(organization.initialUser) || String(findProject.organizationId) !== String(organization._id)) {
+            throw new ApiError(401, "Unauthorized Accesss")
+        }
+
+        return res.status(200).json({ message: "Successfully retrieved Epic", epic })
+    } catch (error) {
+        if (error instanceof ApiError) {
+            return res.status(error.statusCode).json({ message: error.message });
+        } else {
+            console.error(error)
+            return res.status(500).json({ message: "Internal server error. Please try again later." })
+        }
+    }
+};
+
+export { createEpic, getEpicById }
