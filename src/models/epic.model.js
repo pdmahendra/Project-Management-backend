@@ -30,6 +30,11 @@ const epicSchema = new Schema({
     description: {
         type: String,
         required: true
+    },
+    status: {
+        type: String,
+        enum:['To Do', 'In Progress', 'Done'],
+        default: 'To Do'
     }
     // attachment,sprint
 }, {
