@@ -94,4 +94,39 @@ const getEpicById = async (req, res) => {
     }
 };
 
-export { createEpic, getEpicById }
+// siteName/projectid/epic/updateEpic/epicId
+const updateEpic = async (req, res) => {
+    const { siteName, id, epicId } = req.params
+    const { epicName, summary, priority, assignee, reporter, description } = req.body;
+
+    const organization = await Organization.findOne({ siteName });
+    if (!organization) {
+        return res.status(404).json("Organization not found")
+    }
+    const findProject = await Project.findOne({ _id: id });
+    if (!findProject) {
+        return res.status(404).json("Project not found")
+    }
+
+    const epic = await Epic.findOne({ _id: epicId });
+    if (!epic) {
+        throw new ApiError(400, "Epic with this id not exists in your project")
+    }
+
+    if (String(req.user._id) !== String(organization.initialUser) || String(findProject.organizationId) !== String(organization._id)) {
+        throw new ApiError(401, "Unauthorized Accesss")
+    }
+
+    const updateEpic = await Epic.findByIdAndUpdate(epicId, {
+        epicName,
+        summary,
+        priority,
+        assignee,
+        reporter,
+        description
+    }, { new: true })
+
+    return res.status(200).json({ message: "Successfully updated Epic", updatedepic: updateEpic });
+}
+
+export { createEpic, getEpicById, updateEpic }
