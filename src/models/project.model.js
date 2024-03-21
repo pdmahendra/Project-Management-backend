@@ -35,14 +35,14 @@ const projectSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'Orgnization'
     },
-    createdDate: {
-        type: Date,
-        default: Date.now
-    },
-    updatedDate: {
-        type: Date,
-        default: Date.now
-    },
+    epics: [{
+        epic: {
+            type: Schema.Types.ObjectId,
+            ref: 'Epic'
+        }
+    }]
+}, { 
+    timestamps: { createdAt: "createdAT", updatedAt: "updatedAt" } 
 });
 
 const Project = mongoose.model('Project', projectSchema);
