@@ -1,13 +1,12 @@
 import User from '../models/user.model.js'
 import { ApiError } from '../utils/ApiError.js';
-import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 
 
 const users = User;
 
 const userRegistration = async (req, res) => {
-    const { firstName, lastName, email, password, role } = req.body;
+    const { firstName, lastName, email, password } = req.body;
 
     try {
         // Validation - email required
@@ -21,16 +20,12 @@ const userRegistration = async (req, res) => {
             throw new ApiError(409, `User with email ${email} already exists`)
         }
 
-        // Hashing password
-        const hashedPassword = await bcrypt.hash(password, 10);
-
         // Creating user
         const createUser = await users.create({
             firstName,
             lastName,
             email,
-            password: hashedPassword,
-            role,
+            password
         });
 
         if (!createUser) {
@@ -61,8 +56,8 @@ const loginUser = async (req, res) => {
             throw new ApiError(400, "User with this Email does not exist")
         }
 
-        const checkPass = await bcrypt.compare(password, user.password);
-        if (!checkPass) {
+        const checkPassword = await user.isPasswordCorrect(password)
+        if (!checkPassword) {
             throw new ApiError(401, "Invalid user credentials")
         }
 
@@ -78,9 +73,12 @@ const loginUser = async (req, res) => {
                 expiresIn: process.env.ACCESS_TOKEN_EXPIRY
             }
         );
-        res.cookie('token', token, { httpOnly: true });
+        const options = {
+            httpOnly: true,
+            secure: true
+        }
 
-        return res.status(200).json({ message: 'User Successfully logged in', user, token });
+        return res.status(200).cookie("token", token, { options }).json({ message: 'User Successfully logged in', user, token });
     } catch (error) {
         if (error instanceof ApiError) {
             return res.status(error.statusCode).json({ message: error.message, errors: error.errors });
@@ -99,19 +97,15 @@ const updateUserPassword = async (req, res) => {
     }
 
     try {
-        const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-        const updatedUserPassword = await users.findByIdAndUpdate(req.user?._id,
-            {
-                password: hashedPassword
-            },
-            { new: true });
-
-        if (!updatedUserPassword) {
-            throw new ApiError(404, "User not found");
+        const user = await User.findById(req.user?._id)
+        if (!user) {
+            throw new ApiError(400, "User with this Email does not exist")
         }
+        
+        user.password = newPassword
+        await user.save({validateBeforeSave: false})
 
-        return res.status(200).json({ message: "Password has been updated", updatedUserPassword });
+        return res.status(200).json({ message: "Password has been updated" });
     } catch (error) {
         if (error instanceof ApiError) {
             return res.status(error.statusCode).json({ message: error.message, errors: error.errors });

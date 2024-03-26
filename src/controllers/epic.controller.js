@@ -60,6 +60,21 @@ const createEpic = async (req, res) => {
     }
 };
 
+// const getEpics = async (req, res) => {
+//     const { siteName, id } = req.params;
+
+//     const organization = await Organization.findOne({ siteName });
+//     if (!organization) {
+//         return res.status(404).json("Organization not found")
+//     }
+//     const findProject = await Project.findOne({ _id: id });
+//     if (!findProject) {
+//         return res.status(404).json("Project not found")
+//     }
+
+//     const epics = await Project.findProject
+// }
+
 // siteName/projectid/epic/epicId
 const getEpicById = async (req, res) => {
     const { siteName, id, epicId } = req.params
