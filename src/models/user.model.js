@@ -1,4 +1,5 @@
 import mongoose, { Schema } from "mongoose";
+import bcrypt, { hash, compare } from 'bcrypt'
 
 const userSchema = new Schema({
   firstName: {
@@ -23,15 +24,22 @@ const userSchema = new Schema({
     enum: ['User', 'admin'],
     default: 'User' // Default role for new users
   }
-  // Verify your email address - youc can verify by otp or by sending a link on email to click to verify.
 }, {
   timestamps: { createdAt: "createdAT", updatedAt: "updatedAt" }
 })
 
+userSchema.pre('save', async function (next) {
+  if (!this.isModified('password')) return next();
 
+  this.password = await hash(this.password, 10);
+  next();
+})
+
+userSchema.methods.isPasswordCorrect = async function (password) {
+  return await compare(password, this.password)
+}
 
 const userModel = mongoose.model('User', userSchema);
 
 export default userModel;
-
 
