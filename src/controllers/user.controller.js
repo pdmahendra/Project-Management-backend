@@ -101,7 +101,7 @@ const updateUserPassword = async (req, res) => {
         if (!user) {
             throw new ApiError(400, "User with this Email does not exist")
         }
-        
+
         user.password = newPassword
         await user.save({validateBeforeSave: false})
 
@@ -117,7 +117,7 @@ const updateUserPassword = async (req, res) => {
 };
 
 const updateUser = async (req, res) => {
-    const { firstName, lastName, email, role } = req.body;
+    const { firstName, lastName, email } = req.body;
 
     try {
         const existingUser = await users.findOne({ email });
@@ -130,7 +130,6 @@ const updateUser = async (req, res) => {
                 firstName,
                 lastName,
                 email,
-                role
             }, { new: true });
 
         if (!updatedUser) {
