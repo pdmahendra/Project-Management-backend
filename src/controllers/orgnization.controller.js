@@ -25,16 +25,12 @@ const createOrganization = async (req, res) => {
         const createOrg = await organizations.create({
             name,
             siteName: siteLink,
-            initialUser: req.user._id
+            orgAdmin: req.user._id
         });
 
-        const updateRole = await User.findByIdAndUpdate(req.user?._id, {
+        await User.findByIdAndUpdate(req.user?._id, {
             role: 'admin',
         });
-
-        if (!updateRole) {
-            throw new ApiError(500, "An error occurred while updating user role.")
-        }
 
         if (!createOrg) {
             throw new ApiError(500, "An error occurred while creating the organization instance.")
