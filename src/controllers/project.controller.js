@@ -7,9 +7,9 @@ const projects = Project;
 const organizations = Organization;
 
 const createNewProject = async (req, res) => {
-    const { name, description, lead, members } = req.body; //name must,  Other details can be added later (functionality is pending).
-    const leadUser = req.user._id; //leadUser is the admin right now as he is creating project. this functionality is temporary.
+    const { name, description, members } = req.body; //name must,  Other details can be added later (functionality is pending).
     const { siteName } = req.params;
+    const leadUser = req.user._id; //leadUser is the admin right now as he is creating project. this functionality is temporary.
 
     try {
         if (!name) {
@@ -21,7 +21,7 @@ const createNewProject = async (req, res) => {
             throw new ApiError(404, "Organization not found")
         }
 
-        if (String(leadUser) !== String(organization.initialUser)) {
+        if (String(req.user._id) !== String(organization.orgAdmin)) {
             throw new ApiError(401, "Unauthorized Access")
         }
 
@@ -30,7 +30,7 @@ const createNewProject = async (req, res) => {
             throw new ApiError(400, "Project with this name already exists in your organization")
         }
 
-        //only initial user can make project.
+        //only orgAdmin can make project.
         const project = await projects.create({
             name,
             description,
@@ -60,7 +60,7 @@ const getAllYourOrgProjectsBySiteName = async (req, res) => {
             throw new ApiError(404, "Organization not found")
         }
 
-        if (String(req.user._id) !== String(organization.initialUser)) {
+        if (String(req.user._id) !== String(organization.orgAdmin)) {
             throw new ApiError(401, "Unauthorized Access.")
         }
 
@@ -96,13 +96,13 @@ const getSingleProject = async (req, res) => {
         let isMember = false;
         for (let member of members) {
             if (String(member.user) === String(req.user._id)) {
-                console.log("member user and req user id matches")
+                // console.log("member user and req user id matches")
                 isMember = true;
                 break;
             }
         }
 
-        if (!isMember && String(req.user._id) !== String(organization.initialUser) || String(project.organizationId) !== String(organization._id)) {
+        if (!isMember && String(req.user._id) !== String(organization.orgAdmin) || String(project.organizationId) !== String(organization._id)) {
             throw new ApiError(401, "Unauthorized Access. checking here")
         }
 
@@ -127,7 +127,7 @@ const updateProject = async (req, res) => {
             throw new ApiError(404, "Organization not found");
         }
 
-        if (String(req.user._id) !== String(organization.initialUser)) {
+        if (String(req.user._id) !== String(organization.orgAdmin)) {
             throw new ApiError(401, "Unauthorized Access.");
         }
 
@@ -139,7 +139,7 @@ const updateProject = async (req, res) => {
         if (lead) {
             const leadUserExists = await User.findById(lead)
             if (!leadUserExists) {
-                throw new ApiError(404, "Lead user not found");
+                throw new ApiError(404, "Lead user not found"); //tell them to register first.
             }
         }
 
@@ -147,7 +147,7 @@ const updateProject = async (req, res) => {
             for (let member of members) {
                 let findUser = await User.findById(member.user);
                 if (!findUser) {
-                    throw new ApiError(404, `member not found`);
+                    throw new ApiError(404, "member not found"); //tell them to register first.
                 }
                 // role validation is pending.
             }
@@ -182,7 +182,7 @@ const deleteProject = async (req, res) => {
         return res.json({ message: "organization not found" })
     }
 
-    if (String(req.user._id) !== String(organization.initialUser)) {
+    if (String(req.user._id) !== String(organization.orgAdmin)) {
         return res.status(401).json({ message: "Unauthorized Access" });
     }
 
@@ -194,4 +194,10 @@ const deleteProject = async (req, res) => {
     return res.json({ message: "project deleted successfully", project })
 }
 
-export { createNewProject, getAllYourOrgProjectsBySiteName, getSingleProject, updateProject, deleteProject }
+export {
+    createNewProject,
+    getAllYourOrgProjectsBySiteName,
+    getSingleProject,
+    updateProject,
+    deleteProject
+}

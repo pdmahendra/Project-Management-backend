@@ -27,7 +27,7 @@ const projectSchema = new Schema({
         },
         role: {
             type: String,
-            enum: ['Project Lead', 'Developer', 'Tester', 'Scrum Master', 'Product Owner', 'Viewer'],
+            enum: ['Developer', 'Tester', 'Scrum Master', 'Product Owner', 'Viewer'],
             required: true
         }
     }],
@@ -41,8 +41,8 @@ const projectSchema = new Schema({
             ref: 'Epic'
         }
     }]
-}, { 
-    timestamps: { createdAt: "createdAT", updatedAt: "updatedAt" } 
+}, {
+    timestamps: { createdAt: "createdAT", updatedAt: "updatedAt" }
 });
 
 const Project = mongoose.model('Project', projectSchema);
