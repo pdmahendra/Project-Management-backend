@@ -56,7 +56,7 @@ const getYourOrganizationById = async (req, res) => {
             throw new ApiError(404, "Organization not found")
         }
 
-        if (String(req.user?._id) !== String(organization.initialUser)) {
+        if (String(req.user?._id) !== String(organization.orgAdmin)) {
             throw new ApiError(401, "Unauthorized Access")
         }
         return res.status(200).json({ organization: organization });
