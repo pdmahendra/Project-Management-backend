@@ -6,25 +6,27 @@ import { ApiError } from '../utils/ApiError.js';
 
 
 
-// siteName/projects/projectid/createEpic
+
 const createEpic = async (req, res) => {
     const { siteName, id } = req.params
-    const { project, epicName, summary, priority, assignee, reporter, description, status } = req.body;
+    const { epicName, summary, priority, assignee, reporter, description, status } = req.body;
 
-    // console.log(siteName)
-    // console.log(id)
     try {
+        if (!epicName) {
+            return res.status(400).json({ message: "epicName is required" })
+        }
+
         const organization = await Organization.findOne({ siteName });
         if (!organization) {
             return res.status(404).json("Organization not found")
         }
-        const findProject = await Project.findOne({ _id: id });
+        const findProject = await Project.findOne({ _id: id, organizationId: organization._id });
         if (!findProject) {
             return res.status(404).json("Project not found")
         }
 
-        //initialuser is org admin.
-        if (String(req.user._id) !== String(organization.initialUser) || String(findProject.organizationId) !== String(organization._id)) {
+        //only admin can create epic rn.
+        if (String(req.user._id) !== String(organization.orgAdmin)) {
             throw new ApiError(401, "Unauthorized Accesss")
         }
 
@@ -40,7 +42,8 @@ const createEpic = async (req, res) => {
             priority,
             assignee,
             reporter: req.user._id,
-            description
+            description,
+            status
         })
 
         await findProject.updateOne({
@@ -60,28 +63,42 @@ const createEpic = async (req, res) => {
     }
 };
 
-// const getEpics = async (req, res) => {
-//     const { siteName, id } = req.params;
+const getEpics = async (req, res) => {
+    const { siteName, id } = req.params;
 
-//     const organization = await Organization.findOne({ siteName });
-//     if (!organization) {
-//         return res.status(404).json("Organization not found")
-//     }
-//     const findProject = await Project.findOne({ _id: id });
-//     if (!findProject) {
-//         return res.status(404).json("Project not found")
-//     }
+    try {
+        const organization = await Organization.findOne({ siteName });
+        if (!organization) {
+            throw new ApiError(404, "Organization not found")
+        }
 
-//     const epics = await Project.findProject
-// }
+        const findProject = await Project.findOne({ _id: id });
+        if (!findProject) {
+            throw new ApiError(404, "Project not found")
+        }
 
-// siteName/projectid/epic/epicId
+        if (String(req.user._id) !== String(organization.orgAdmin) || String(findProject.organizationId) !== String(organization._id)) {
+            throw new ApiError(401, "Unauthorized Accesss")
+        }
+
+        const epicsArray = findProject.epics
+        const epicsPromises = epicsArray.map(epicObject => Epic.findById(epicObject.epic))
+        const epics = await Promise.all(epicsPromises);
+
+        return res.status(201).json({ message: "epics", epics })
+    } catch (error) {
+        if (error instanceof ApiError) {
+            return res.status(error.statusCode).json({ message: error.message })
+        } else {
+            console.error(error)
+            return res.status(500).json({ message: "Internal server error. Please try again later." })
+        }
+    }
+}
+
 const getEpicById = async (req, res) => {
     const { siteName, id, epicId } = req.params
 
-    // console.log(siteName)
-    // console.log(id)
-    // console.log(epicId)
     try {
         const organization = await Organization.findOne({ siteName });
         if (!organization) {
@@ -92,14 +109,13 @@ const getEpicById = async (req, res) => {
             return res.status(404).json("Project not found")
         }
 
-        const epic = await Epic.findOne({ _id: epicId });
-        if (!epic) {
-            throw new ApiError(400, "Epic with this id not exists in your project")
+        if (String(req.user._id) !== String(organization.orgAdmin) || String(findProject.organizationId) !== String(organization._id)) {
+            throw new ApiError(401, "Unauthorized Accesss")
         }
 
-        //initialuser is org admin.
-        if (String(req.user._id) !== String(organization.initialUser) || String(findProject.organizationId) !== String(organization._id)) {
-            throw new ApiError(401, "Unauthorized Accesss")
+        const epic = await Epic.findOne({ _id: epicId });
+        if (!epic) {
+            throw new ApiError(400, "Epic with this id does not exists in your project")
         }
 
         return res.status(200).json({ message: "Successfully retrieved Epic", epic })
@@ -159,23 +175,25 @@ const updateEpic = async (req, res) => {
 
 const deleteEpic = async (req, res) => {
     const { siteName, id, epicId } = req.params;
-    const organization = await Organization.findOne({ siteName });
+
     try {
+        const organization = await Organization.findOne({ siteName });
         if (!organization) {
             return res.status(404).json("Organization not found")
         }
+
         const findProject = await Project.findOne({ _id: id });
         if (!findProject) {
             return res.status(404).json("Project not found")
         }
 
-        if (String(req.user._id) !== String(organization.initialUser) || String(findProject.organizationId) !== String(organization._id)) {
+        if (String(req.user._id) !== String(organization.orgAdmin) || String(findProject.organizationId) !== String(organization._id)) {
             throw new ApiError(401, "Unauthorized Accesss")
         }
 
         const epic = await Epic.findByIdAndDelete({ _id: epicId });
         if (!epic) {
-            throw new ApiError(400, "Epic with this id not exists in your project")
+            throw new ApiError(400, "Epic with this id does not exists in your project")
         }
 
         await Project.updateOne(findProject, {
@@ -194,4 +212,4 @@ const deleteEpic = async (req, res) => {
 }
 
 
-export { createEpic, getEpicById, updateEpic, deleteEpic }
+export { createEpic, getEpics, getEpicById, updateEpic, deleteEpic }
