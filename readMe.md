@@ -1,4 +1,4 @@
-# Jira Backend Project
+# AgileHub Project Management Backend 
 
 This is a backend project for a Jira-like application, focusing on organization and project management features.
 
