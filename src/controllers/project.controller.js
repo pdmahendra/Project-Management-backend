@@ -64,7 +64,7 @@ const getAllYourOrgProjectsBySiteName = async (req, res) => {
             throw new ApiError(401, "Unauthorized Access.")
         }
 
-        const allProjects = await projects.find({ organizationId: organization._id });
+        const allProjects = await projects.find({ organizationId: organization._id }).select("-epics");
 
         return res.status(200).json({ message: "Successfully retrieved all projects for your organization.", allProjects });
     } catch (error) {
@@ -86,7 +86,7 @@ const getSingleProject = async (req, res) => {
             throw new ApiError(404, "Organization not found")
         }
 
-        const project = await projects.findById(id)
+        const project = await projects.findById(id).select("-epics")
         if (!project) {
             throw new ApiError(404, "Project not found")
         }
@@ -156,7 +156,7 @@ const updateProject = async (req, res) => {
         const updatedProject = await projects.findByIdAndUpdate(id,
             { name, description, lead, members },
             { new: true }
-        );
+        ).select("-epics");
 
         if (!updatedProject) {
             throw new ApiError(404, "Project not found");
@@ -174,6 +174,8 @@ const updateProject = async (req, res) => {
 
 };
 
+
+// epics related to project should be delete after deleting project
 const deleteProject = async (req, res) => {
     const { siteName, id } = req.params;
 
