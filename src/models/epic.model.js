@@ -35,7 +35,13 @@ const epicSchema = new Schema({
         type: String,
         enum:['To Do', 'In Progress', 'Done'],
         default: 'To Do'
-    }
+    },
+    story:[{
+        story: {
+            type: Schema.Types.ObjectId,
+            ref: 'Story'
+        }
+    }]
     // attachment,sprint
 }, {
     timestamps: { createdAt: "createdAT", updatedAt: "updatedAt" }
