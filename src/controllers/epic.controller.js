@@ -20,6 +20,7 @@ const createEpic = async (req, res) => {
         if (!organization) {
             return res.status(404).json("Organization not found")
         }
+
         const findProject = await Project.findOne({ _id: id, organizationId: organization._id });
         if (!findProject) {
             return res.status(404).json("Project not found")
@@ -153,13 +154,14 @@ const updateEpic = async (req, res) => {
             throw new ApiError(401, "Unauthorized Accesss")
         }
 
-        const updateEpic = await Epic.findByIdAndUpdate(epicId, {
-            epicName,
+        const updateEpic = await Epic.updateOne({ _id: epic }, {
+            $set:
+          {  epicName,
             summary,
             priority,
             assignee,
             reporter,
-            description
+            description}
         }, { new: true })
 
         return res.status(200).json({ message: "Successfully updated Epic", updatedepic: updateEpic });

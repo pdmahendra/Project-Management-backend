@@ -153,8 +153,10 @@ const updateProject = async (req, res) => {
             }
         }
 
-        const updatedProject = await projects.findByIdAndUpdate(id,
-            { name, description, lead, members },
+        const updatedProject = await projects.updateOne({ _id: findProject },
+            {
+                $set: { name, description, lead, members }
+            },
             { new: true }
         ).select("-epics");
 
