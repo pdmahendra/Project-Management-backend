@@ -1,6 +1,6 @@
 import Epic from '../models/epic.model.js';
 import Project from '../models/project.model.js';
-// import User from '../models/user.model.js'
+import User from '../models/user.model.js'
 import Organization from '../models/orgnization.model.js'
 import { ApiError } from '../utils/ApiError.js';
 
@@ -36,6 +36,12 @@ const createEpic = async (req, res) => {
             throw new ApiError(400, "Epic with this name already exists in your project")
         }
 
+        if (assignee) {
+            const assigneeUser = await User.findOne({ _id: assignee })
+            if(!assigneeUser){
+                throw new ApiError(404, "assignee user is not registered")
+            }
+        }
         const createEpic = await Epic.create({
             project: findProject._id,
             epicName,
@@ -84,9 +90,12 @@ const getEpics = async (req, res) => {
 
         const epicsArray = findProject.epics
         const epicsPromises = epicsArray.map(epicObject => Epic.findById(epicObject.epic))
-        const epics = await Promise.all(epicsPromises);
+        const epicsResult = await Promise.all(epicsPromises);
+        const epics = epicsResult.filter(epic => epic !== null);
+
 
         return res.status(201).json({ message: "epics", epics })
+       
     } catch (error) {
         if (error instanceof ApiError) {
             return res.status(error.statusCode).json({ message: error.message })
@@ -156,12 +165,14 @@ const updateEpic = async (req, res) => {
 
         const updateEpic = await Epic.updateOne({ _id: epic }, {
             $set:
-          {  epicName,
-            summary,
-            priority,
-            assignee,
-            reporter,
-            description}
+            {
+                epicName,
+                summary,
+                priority,
+                assignee,
+                reporter,
+                description
+            }
         }, { new: true })
 
         return res.status(200).json({ message: "Successfully updated Epic", updatedepic: updateEpic });
