@@ -77,4 +77,41 @@ const createStory = async (req, res) => {
     }
 };
 
-export { createStory }
+const getStoryById = async (req, res) => {
+    const { siteName, id, epicId, storyId } = req.params;
+    try {
+        const organization = await Organization.findOne({ siteName });
+        if (!organization) {
+            throw new ApiError(404, "Organization not found")
+        }
+        const findProject = await Project.findOne({ _id: id });
+        if (!findProject) {
+            throw new ApiError(404, "Project not found")
+        }
+
+        if (String(req.user._id) !== String(organization.orgAdmin) || String(findProject.organizationId) !== String(organization._id)) {
+            throw new ApiError(401, "Unauthorized Accesss")
+        }
+
+        const epic = await Epic.findOne({ _id: epicId });
+        if (!epic) {
+            throw new ApiError(400, "Epic with this id does not exists in your project")
+        }
+
+        const story = await Story.findOne({ _id: storyId });
+        if (!storyId) {
+            throw new ApiError(400, "Story with this id does not exists in your project's epic")
+        }
+
+        return res.status(200).json({ message: "Successfully retrieved Story", story })
+    } catch (error) {
+        if (error instanceof ApiError) {
+            return res.status(error.statusCode).json({ message: error.message });
+        } else {
+            console.error(error)
+            return res.status(500).json({ message: "Internal server error. Please try again later." })
+        }
+    }
+}
+
+export { createStory, getStoryById }
