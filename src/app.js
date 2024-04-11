@@ -24,6 +24,7 @@ import organizationRoutes from './routes/organization.routes.js';
 import projectRoutes from './routes/project.routes.js'
 import epicRoutes from './routes/epic.routes.js'
 import storyRoutes from './routes/story.routes.js'
+import BugRoutes from './routes/bug.routes.js'
 
 //routes declaration
 app.use('/api/v1/users', userRoutes)
@@ -32,6 +33,7 @@ app.use('/api/v1/organization', organizationRoutes)
 app.use('/', projectRoutes,)
 app.use('/', epicRoutes)
 app.use('/', storyRoutes)
+app.use('/', BugRoutes)
 
 
 
