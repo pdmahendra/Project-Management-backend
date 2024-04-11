@@ -47,6 +47,6 @@ const bugSchema = new Schema({
 
 const bugModel = mongoose.model('Bug', bugSchema);
 
-export default storyModel;
+export default bugModel;
 
 
